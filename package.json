@@ -8,5 +8,13 @@
   },
   "author": "50",
   "license": "ISC",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "ethers": "^6.5.2",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.3",
+    "@types/node": "^20.4.2"
+  }
 }

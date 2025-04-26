@@ -50,19 +50,19 @@ export class ContangoTxExecutor {
     async executeTrade(order: OrderObject, moneyMarket: number = 1): Promise<string | null> {
         try {
             // Approve USDC
-            // const approveReceipt = await approveUsdcForSpend(utils.VAULT_ADDRESS, BigInt(order.sizeUsd * 1e6));
-            // const approvalSuccess = checkTxSuccess(approveReceipt!);
-            // if (!approvalSuccess) {
-            //     console.error("Failed to approve USDC.");
-            //     return null;
-            // }
+            const approveReceipt = await approveUsdcForSpend(utils.VAULT_ADDRESS, BigInt(order.sizeUsd * 1e6));
+            const approvalSuccess = checkTxSuccess(approveReceipt!);
+            if (!approvalSuccess) {
+                console.error("Failed to approve USDC.");
+                return null;
+            }
 
             const usdcAddress = getTokenAddress('USDC')!;
             const assetAddress = getTokenAddress(order.symbol)!;
             const usdcDecimals = getDecimalsForSymbol("USDC")!;
             const assetDecimals = getDecimalsForSymbol(order.symbol)!;
 
-            // await this.depositToVault(usdcAddress, BigNumber.from(order.sizeUsd * 1e6));
+            await this.depositToVault(usdcAddress, BigNumber.from(order.sizeUsd * 1e6));
 
             const price = await this.getPriceFromMoneyMarket(order.symbol, MoneyMarkets.AAVE);
             const collateralUsd = order.sizeUsd * this.fees;
@@ -216,24 +216,3 @@ export class ContangoTxExecutor {
         }
     }
 }
-
-const txExecutor = new ContangoTxExecutor(
-    3,
-    process.env.EXECUTOR_ADDRESS!,
-    process.env.EXECUTOR_PRIV_KEY!,
-    utils.MAESTRO_CONTRACT,
-    utils.LENS_CONTRACT,
-    utils.VAULT_CONTRACT,
-    1
-)
-
-const testOrder: OrderObject = {
-    symbol: "ETH",
-    isLong: true,
-    sizeUsd: 10
-};
-
-(async () => {
-    ContangoMarketDirectory.initialize()
-    const tx = await txExecutor.executeTrade(testOrder, 1);
-})();

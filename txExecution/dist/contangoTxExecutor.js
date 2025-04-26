@@ -56,17 +56,28 @@ var ContangoTxExecutor = /** @class */ (function () {
     ContangoTxExecutor.prototype.executeTrade = function (order, moneyMarket) {
         if (moneyMarket === void 0) { moneyMarket = 1; }
         return __awaiter(this, void 0, Promise, function () {
-            var usdcAddress, assetAddress, usdcDecimals, assetDecimals, price, collateralUsd, collateralAsset, quantity, flashloanAmount, limitPrice, sellToken, buyToken, positionId, cashflowCurrency, quantityDecimals, quoteDetails, zeroExQuote, tradeParams, executionParams, txData, _a, txReceipt, executionSuccess, tradeId, error_1;
+            var approveReceipt, approvalSuccess, usdcAddress, assetAddress, usdcDecimals, assetDecimals, price, collateralUsd, collateralAsset, quantity, flashloanAmount, limitPrice, sellToken, buyToken, positionId, cashflowCurrency, quantityDecimals, quoteDetails, zeroExQuote, tradeParams, executionParams, txData, _a, txReceipt, executionSuccess, tradeId, error_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _b.trys.push([0, 6, , 7]);
+                        _b.trys.push([0, 8, , 9]);
+                        return [4 /*yield*/, index_js_1.approveUsdcForSpend(utils.VAULT_ADDRESS, BigInt(order.sizeUsd * 1e6))];
+                    case 1:
+                        approveReceipt = _b.sent();
+                        approvalSuccess = index_js_1.checkTxSuccess(approveReceipt);
+                        if (!approvalSuccess) {
+                            console.error("Failed to approve USDC.");
+                            return [2 /*return*/, null];
+                        }
                         usdcAddress = getTokenAddress('USDC');
                         assetAddress = getTokenAddress(order.symbol);
                         usdcDecimals = getDecimalsForSymbol("USDC");
                         assetDecimals = getDecimalsForSymbol(order.symbol);
+                        return [4 /*yield*/, this.depositToVault(usdcAddress, ethers_1.BigNumber.from(order.sizeUsd * 1e6))];
+                    case 2:
+                        _b.sent();
                         return [4 /*yield*/, this.getPriceFromMoneyMarket(order.symbol, MoneyMarkets.AAVE)];
-                    case 1:
+                    case 3:
                         price = _b.sent();
                         collateralUsd = order.sizeUsd * this.fees;
                         collateralAsset = collateralUsd / price;
@@ -101,7 +112,7 @@ var ContangoTxExecutor = /** @class */ (function () {
                             taker: SPOT_EXECUTOR_ADDRESS
                         };
                         return [4 /*yield*/, get0xApiQuote(quoteDetails)];
-                    case 2:
+                    case 4:
                         zeroExQuote = _b.sent();
                         if (!zeroExQuote) {
                             console.error("0x API quote failed.");
@@ -124,15 +135,15 @@ var ContangoTxExecutor = /** @class */ (function () {
                         });
                         console.log("EXECUTION_PARAMS", executionParams);
                         return [4 /*yield*/, this.maestro.populateTransaction.trade(tradeParams, executionParams)];
-                    case 3:
+                    case 5:
                         txData = _b.sent();
                         txData.from = this.executorAddress;
                         _a = txData;
                         return [4 /*yield*/, GLOBAL_ARBITRUM_RPC.getTransactionCount(this.executorAddress)];
-                    case 4:
+                    case 6:
                         _a.nonce = _b.sent();
                         return [4 /*yield*/, index_js_1.buildAndSendTx(txData)];
-                    case 5:
+                    case 7:
                         txReceipt = _b.sent();
                         executionSuccess = index_js_1.checkTxSuccess(txReceipt);
                         if (!executionSuccess) {
@@ -141,11 +152,11 @@ var ContangoTxExecutor = /** @class */ (function () {
                         }
                         tradeId = this.getIdFromTxReceipt(txReceipt);
                         return [2 /*return*/, tradeId];
-                    case 6:
+                    case 8:
                         error_1 = _b.sent();
                         console.error("ContangoTxExecutor - Failed to execute trade on Contango.", error_1);
                         return [2 /*return*/, null];
-                    case 7: return [2 /*return*/];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -233,22 +244,3 @@ var ContangoTxExecutor = /** @class */ (function () {
     return ContangoTxExecutor;
 }());
 exports.ContangoTxExecutor = ContangoTxExecutor;
-var txExecutor = new ContangoTxExecutor(3, process.env.EXECUTOR_ADDRESS, process.env.EXECUTOR_PRIV_KEY, utils.MAESTRO_CONTRACT, utils.LENS_CONTRACT, utils.VAULT_CONTRACT, 1);
-var testOrder = {
-    symbol: "ETH",
-    isLong: true,
-    sizeUsd: 10
-};
-(function () { return __awaiter(void 0, void 0, void 0, function () {
-    var tx;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                ContangoMarketDirectory.initialize();
-                return [4 /*yield*/, txExecutor.executeTrade(testOrder, 1)];
-            case 1:
-                tx = _a.sent();
-                return [2 /*return*/];
-        }
-    });
-}); })();
