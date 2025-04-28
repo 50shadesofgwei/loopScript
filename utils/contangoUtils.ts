@@ -266,20 +266,19 @@ export async function generatePositionIds(outputFile = "position_ids.json"): Pro
                 const expiry = 2 ** 32 - 1;  // Default expiry
         
                 const positionId = encodePositionId(
-                    instrumentValue,  // Symbol
-                    marketValue,      // Numeric market ID (good!)
+                    instrumentValue,  
+                    marketValue,     
                     number,
                     flags,
                     expiry
                 );
         
-                const key = `${instrumentKey}_${marketKey}`;  // Use marketKey (string) for the key
+                const key = `${instrumentKey}_${marketKey}`;  
                 positionIds[key] = positionId;
             }
         }
     }
 
-    // Save to file
     await fs.writeFile(outputFile, JSON.stringify(positionIds, null, 4));
 
     console.log(`Position IDs saved to ${outputFile}`);
